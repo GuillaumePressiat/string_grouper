@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.7, 3.8, 3.9]
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -23,8 +23,11 @@ jobs:
     
     - name: Install dev-package
       run: |
+        sudo apt-get install qemu tree
         python -m pip install --upgrade pip
         pip install -v -e .
+        qemu-x86_64 -R 20M python time_match_strings.py
+        
     
     - name: Run tests
       run: python -m unittest
