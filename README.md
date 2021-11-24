@@ -1088,9 +1088,53 @@ could serve as a guide for estimating the optimum block numbers &mdash;
 namely those that divide the Series into blocks of size roughly equal to 
 80&nbsp;000 for the right operand (or `right_Series`).
 
-So what are the optimum block number values for *any* given Series? That is 
-anyone's guess, and may likely depend on the data itself.  Furthermore, as hinted above, 
-the answer may vary from computer to computer.  
+## Limiting Factor: CPU Cache Size
+To be more precise, the optimum value for ***Right Block Size*** is limited only by the size 
+of the *CPU cache*, which is often of the order of a few megabytes (6MB, for example).
 
-We however encourage the user to make judicious use of the `n_blocks` 
-parameter to boost performance of `string_grouper` whenever possible.
+Accessing data from the CPU cache is the fastest memory retrieval mechanism possible on a 
+computer.  It can be 10 times faster than main memory (RAM) retrieval in some computers.  So 
+naturally, performance is enhanced when frequently-accessed data is first loaded from RAM into the 
+CPU-cache.
+However, when the CPU cache gets full, repeated memory accesses to data not in the cache 
+(termed "cache-misses") happen more often, leading to overall degradation in performance 
+(since in that case, data is instead fetched from RAM).
+
+CPU cache management offers an explanation for `string_grouper`'s runtime performance 
+characteristics.  
+During sparse matrix multiplication, the algorithm processes the left matrix operand one row 
+at a time (or, at least, a few rows at a time in parallel, depending on the number of CPU 
+cores or threads available).  This means that only a few elements of the left matrix are 
+loaded into the CPU-cache at a time.  Since these elements are not repeatedly accessed, they 
+therefore do not persist in the CPU cache. 
+
+On the other hand, the algorithm has little control over how the elements of the right matrix 
+operand are accessed, as it depends entirely on whether there exist elements (in *any* column 
+of the right matrix operand) with row indices matching the column indices of elements in 
+the few currently-being-processed rows of the left operand.  That is, there are repeated 
+accesses to data from potentially the entire right matrix operand.  So the entire right matrix 
+attempts to fill-up and persist in the CPU cache.  
+
+But if the size of the right matrix is larger than can fit into the CPU cache, then cache-misses
+occur more frequently, leading to performance degradation.
+
+The above considerations lead to the following formula for the the optimal right Series 
+block-size, or the optimum number of strings *N\**<sub>master</sub> for the `master` Series:
+
+*N\**<sub>master</sub> &nbsp;&prop;&nbsp; *M*<sub>CPU</sub> /  (*&rho;*<sub>right</sub>&nbsp;*N*<sub>tokens</sub>)&nbsp;,
+
+where *M*<sub>CPU</sub> is the CPU cache size, *&rho;*<sub>right</sub> is the density of the
+right matrix operand, and *N*<sub>tokens</sub> is the number of tokens (or vocabulary) 
+encoding the strings (which is also the number of rows of the right matrix operand equal to 
+the number of columns of the left matrix).  
+ 
+For the laptop used in this README's computations, *N\**<sub>master</sub> = 8 &times; 10<sup>4</sup>; 
+*M*<sub>CPU</sub> = 6MB; *&rho;*<sub>right</sub> = ... while *N*<sub>tokens</sub> =.
+
+These values enable the constant of proportionality for the above formula to be found which in 
+turn enables the determination of a "guesstimate" for *N\**<sub>master</sub> to be found for 
+any computer whose CPU cache size is known.  The guesstimate determination is built into 
+`string_grouper`.
+
+We however encourage the user to make judicious use of the `n_blocks` parameter to boost 
+performance of `string_grouper` whenever possible.
