@@ -6,8 +6,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse.csr import csr_matrix
 from scipy.sparse.lil import lil_matrix
 from scipy.sparse.csgraph import connected_components
+from scipy.sparse import vstack
 from typing import Tuple, NamedTuple, List, Optional, Union
-from sparse_dot_topn import sp_matmul_topn
+from sparse_dot_topn import sp_matmul_topn, zip_sp_matmul_topn
 from functools import wraps
 
 DEFAULT_NGRAM_SIZE: int = 3
@@ -717,3 +718,82 @@ class StringGrouper(object):
             raise Exception('Both master and master_id must be pandas.Series of the same length.')
         if duplicates is not None and duplicates_id is not None and len(duplicates) != len(duplicates_id):
             raise Exception('Both duplicates and duplicates_id must be pandas.Series of the same length.')
+
+
+
+def match_strings_chunked(master: pd.Series,
+                          duplicates: Optional[pd.Series] = None,
+                          master_id: Optional[pd.Series] = None,
+                          duplicates_id: Optional[pd.Series] = None,
+                          max_n_matches: Optional[np.int32] = 4,
+                          min_similarity: Optional[np.float32] = 0.8,
+                          n_gram_size: Optional[np.int32] = 3,
+                          n_threads : Optional[np.int32] = None, 
+                          chunks_size = [1,200]):
+
+    strings = pd.concat([master, duplicates])
+
+    def n_grams(string: str) -> List[str]:
+        """
+        :param string: string to create ngrams from
+        :return: list of ngrams
+        """
+        ngram_size = n_gram_size
+        regex_pattern = r'[,-./]|\s'
+        ignore_case = True
+
+        if ignore_case and string is not None:
+            string = string.lower()  # lowercase to ignore all case
+        string = re.sub(regex_pattern, r'', string)
+        n_grams = zip(*[string[i:] for i in range(ngram_size)])
+        return [''.join(n_gram) for n_gram in n_grams]
+
+
+    tfidfvec = TfidfVectorizer(min_df=1, analyzer = n_grams, dtype = np.float32).fit(strings)
+
+    master_matrix = tfidfvec.transform(master)
+
+    def define_chunks(length_to_split, n_chunks):
+
+        def chunk_list(lst, n):
+            """Yield successive n-sized chunks from lst."""
+            for i in range(0, len(lst), n):
+                yield lst[i:i + n]
+
+        chunk_len = np.ceil(length_to_split / n_chunks).astype('int')
+        return list(chunk_list(range(length_to_split), chunk_len))
+
+    As = [master_matrix[i] for i in define_chunks(master_matrix.get_shape()[0], chunks_size[0])]
+
+    if duplicates is not None:
+        dups_matrix = tfidfvec.transform(duplicates)
+        Bs = [dups_matrix[i] for i in define_chunks(dups_matrix.get_shape()[0], chunks_size[1])]
+    else:
+        Bs = [master_matrix[i] for i in define_chunks(master_matrix.get_shape()[0], chunks_size[1])]
+        
+    Cs = [[sp_matmul_topn(Aj, Bi.T, top_n=max_n_matches, threshold=min_similarity, sort=True, n_threads = n_threads) for Bi in Bs] for Aj in As]
+
+    # 2c. top-n zipping of the C-matrices, done over the index of the B sub-matrices.
+    Czip = [zip_sp_matmul_topn(top_n=max_n_matches, C_mats=Cis) for Cis in Cs]
+
+    # 2d. stacking over zipped C-matrices, done over the index of the A sub-matrices
+    # The resulting matrix C equals C_ref.
+    C = vstack(Czip, dtype=np.float32)
+
+    matches = C#_ref
+    r, c = matches.nonzero()
+    matches_list = pd.DataFrame({'master_side': r.astype(np.int64),
+                                 'dupe_side': c.astype(np.int64),
+                                 'similarity': matches.data})
+
+
+    end_ = pd.DataFrame({
+        'left_side' : master.iloc[matches_list.master_side].reset_index(drop=True),
+        'left_side_id' : master_id.iloc[matches_list.master_side].reset_index(drop=True) if master_id is not None else None,
+        'right_side' : duplicates.iloc[matches_list.dupe_side].reset_index(drop=True) if duplicates is not None else master.iloc[matches_list.dupe_side].reset_index(drop=True),
+        'right_side_id' : duplicates_id.iloc[matches_list.dupe_side].reset_index(drop=True) if duplicates is not None else master_id.iloc[matches_list.dupe_side].reset_index(drop=True),
+        'similarity': matches_list['similarity']
+        }
+    )
+
+    return end_
