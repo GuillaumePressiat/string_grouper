@@ -731,7 +731,10 @@ def match_strings_chunked(master: pd.Series,
                           n_threads : Optional[np.int32] = None, 
                           chunks_size = [1,200]):
 
-    strings = pd.concat([master, duplicates])
+    if duplicates is not None:
+        strings = pd.concat([master, duplicates])
+    else:
+        strings = master
 
     def n_grams(string: str) -> List[str]:
         """
@@ -791,7 +794,8 @@ def match_strings_chunked(master: pd.Series,
         'left_side' : master.iloc[matches_list.master_side].reset_index(drop=True),
         'left_side_id' : master_id.iloc[matches_list.master_side].reset_index(drop=True) if master_id is not None else None,
         'right_side' : duplicates.iloc[matches_list.dupe_side].reset_index(drop=True) if duplicates is not None else master.iloc[matches_list.dupe_side].reset_index(drop=True),
-        'right_side_id' : duplicates_id.iloc[matches_list.dupe_side].reset_index(drop=True) if duplicates is not None else master_id.iloc[matches_list.dupe_side].reset_index(drop=True),
+        'right_side_id' : duplicates_id.iloc[matches_list.dupe_side].reset_index(drop=True) if duplicates_id is not None else 
+                        master_id.iloc[matches_list.dupe_side].reset_index(drop=True) if master_id is not None else None,
         'similarity': matches_list['similarity']
         }
     )
