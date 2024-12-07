@@ -7,7 +7,7 @@ from scipy.sparse.csr import csr_matrix
 from scipy.sparse.lil import lil_matrix
 from scipy.sparse.csgraph import connected_components
 from typing import Tuple, NamedTuple, List, Optional, Union
-from sparse_dot_topn import awesome_cossim_topn
+from sparse_dot_topn import sp_matmul_topn
 from functools import wraps
 
 DEFAULT_NGRAM_SIZE: int = 3
@@ -261,8 +261,9 @@ class StringGrouper(object):
         master_matrix, duplicate_matrix = self._get_tf_idf_matrices()
 
         # Calculate the matches using the cosine similarity
-        matches, self._true_max_n_matches = self._build_matches(master_matrix, duplicate_matrix)
-
+        matches = self._build_matches(master_matrix, duplicate_matrix)
+        self._true_max_n_matches = np.diff(matches.indptr).max()
+        
         if self._duplicates is None:
             # convert to lil format for best efficiency when setting matrix-elements
             matches = matches.tolil()
@@ -459,18 +460,20 @@ class StringGrouper(object):
         tf_idf_matrix_2 = duplicate_matrix.transpose()
 
         optional_kwargs = {
-            'return_best_ntop': True,
-            'use_threads': self._config.number_of_processes > 1,
-            'n_jobs': self._config.number_of_processes
+            #'return_best_ntop': True,
+            # 'use_threads': self._config.number_of_processes > 1,
+            'n_threads': self._config.number_of_processes
         }
 
-        print('Number of jobs : ', self._config.number_of_processes)
-        print('Number of matches : ', self._max_n_matches)
+        # print('Number of jobs : ', self._config.number_of_processes)
+        # print('Number of matches : ', self._max_n_matches)
 
-        return awesome_cossim_topn(
-            tf_idf_matrix_1, tf_idf_matrix_2,
+        return sp_matmul_topn(
+            tf_idf_matrix_1, 
+            tf_idf_matrix_2,
             self._max_n_matches,
             self._config.min_similarity,
+            sort = True,
             **optional_kwargs
         )
 
