@@ -39,6 +39,7 @@ DEFAULT_MASTER_NAME: str = 'master'  # used to name non-index column of the outp
 DEFAULT_MASTER_ID_NAME: str = f'{DEFAULT_MASTER_NAME}_{DEFAULT_ID_NAME}'    # used to name id-column of the output of
 # StringGrouper.get_nearest_matches
 GROUP_REP_PREFIX: str = 'group_rep_'    # used to prefix and name columns of the output of StringGrouper._deduplicate
+DEFAULT_N_BLOCKS: Tuple[int, int] = None
 
 # High level functions
 
@@ -159,6 +160,10 @@ class StringGrouperConfig(NamedTuple):
     :param replace_na: whether or not to replace NaN values in most similar string index-columns with
     corresponding duplicates-index values. Defaults to False.
     :param group_rep: str.  The scheme to select the group-representative.  Default is 'centroid'.
+    :param n_blocks: (int, int).  This parameter is provided to help boost performance, if possible, of
+    processing large DataFrames, by splitting the DataFrames into n_blocks[0] blocks for the left
+    operand (of the underlying matrix multiplication) and into n_blocks[1] blocks for the right operand
+    before performing the string-comparisons block-wise.  Defaults to None.
     The other choice is 'first'.
     """
 
@@ -173,7 +178,7 @@ class StringGrouperConfig(NamedTuple):
     include_zeroes: bool = DEFAULT_INCLUDE_ZEROES
     replace_na: bool = DEFAULT_REPLACE_NA
     group_rep: str = DEFAULT_GROUP_REP
-
+    n_blocks: Tuple[int, int] = DEFAULT_N_BLOCKS
 
 def validate_is_fit(f):
     """Validates if the StringBuilder was fit before calling certain public functions"""
@@ -243,6 +248,7 @@ class StringGrouper(object):
         # _true_max_n_matches will contain the true maximum number of matches over all strings in master if
         # self._config.min_similarity <= 0
         self._true_max_n_matches = None
+        self._n_blocks = self._config.n_blocks
 
     def n_grams(self, string: str) -> List[str]:
         """
@@ -262,7 +268,7 @@ class StringGrouper(object):
         master_matrix, duplicate_matrix = self._get_tf_idf_matrices()
 
         # Calculate the matches using the cosine similarity
-        matches = self._build_matches(master_matrix, duplicate_matrix)
+        matches = self._build_matches(master_matrix, duplicate_matrix, self._n_blocks)
         self._true_max_n_matches = np.diff(matches.indptr).max()
         
         if self._duplicates is None:
@@ -455,28 +461,59 @@ class StringGrouper(object):
         self._vectorizer.fit(strings)
         return self._vectorizer
 
-    def _build_matches(self, master_matrix: csr_matrix, duplicate_matrix: csr_matrix) -> csr_matrix:
-        """Builds the cossine similarity matrix of two csr matrices"""
-        tf_idf_matrix_1 = master_matrix
-        tf_idf_matrix_2 = duplicate_matrix.transpose()
+    def _build_matches(self, master_matrix: csr_matrix, duplicate_matrix: csr_matrix, n_blocks: Tuple[int, int]) -> csr_matrix:
+        def define_chunks(length_to_split, n_chunks):
 
-        optional_kwargs = {
-            #'return_best_ntop': True,
-            # 'use_threads': self._config.number_of_processes > 1,
-            'n_threads': self._config.number_of_processes
-        }
+            def chunk_list(lst, n):
+                """Yield successive n-sized chunks from lst."""
+                for i in range(0, len(lst), n):
+                    yield lst[i:i + n]
 
-        # print('Number of jobs : ', self._config.number_of_processes)
-        # print('Number of matches : ', self._max_n_matches)
+            chunk_len = np.ceil(length_to_split / n_chunks).astype('int')
+            return list(chunk_list(range(length_to_split), chunk_len))
 
-        return sp_matmul_topn(
-            tf_idf_matrix_1, 
-            tf_idf_matrix_2,
-            self._max_n_matches,
-            self._config.min_similarity,
-            sort = True,
-            **optional_kwargs
-        )
+        # print("n blocks : ")
+        # print(n_blocks)
+
+        if n_blocks is None:
+            """Builds the cossine similarity matrix of two csr matrices"""
+            tf_idf_matrix_1 = master_matrix
+            tf_idf_matrix_2 = duplicate_matrix.transpose()
+
+            optional_kwargs = {
+                'n_threads': self._config.number_of_processes
+            }
+
+
+            return sp_matmul_topn(
+                tf_idf_matrix_1, 
+                tf_idf_matrix_2,
+                self._max_n_matches,
+                self._config.min_similarity,
+                sort = True,
+                **optional_kwargs
+            )
+        else:
+            As = [master_matrix[i] for i in define_chunks(master_matrix.get_shape()[0], n_blocks[0])]
+            Bs = [duplicate_matrix[i] for i in define_chunks(duplicate_matrix.get_shape()[0], n_blocks[1])]
+
+            Cs = [[sp_matmul_topn(Aj, 
+                                  Bi.T, 
+                                  top_n=self._max_n_matches, 
+                                  threshold=self._config.min_similarity, 
+                                  sort=True, 
+                                  n_threads = self._config.number_of_processes) 
+                    for Bi in Bs] for Aj in As]
+
+            # 2c. top-n zipping of the C-matrices, done over the index of the B sub-matrices.
+            Czip = [zip_sp_matmul_topn(top_n=self._max_n_matches, C_mats=Cis) for Cis in Cs]
+
+            # 2d. stacking over zipped C-matrices, done over the index of the A sub-matrices
+            # The resulting matrix C equals C_ref.
+            C = vstack(Czip, dtype=np.float32)
+            
+            return C
+
 
     def _get_non_matches_list(self) -> pd.DataFrame:
         """Returns a list of all the indices of non-matching pairs (with similarity set to 0)"""
@@ -729,7 +766,7 @@ def match_strings_chunked(master: pd.Series,
                           min_similarity: Optional[np.float32] = 0.8,
                           n_gram_size: Optional[np.int32] = 3,
                           n_threads : Optional[np.int32] = None, 
-                          chunks_size = [1,200]):
+                          chunks_size = (1,200)):
 
     if duplicates is not None:
         strings = pd.concat([master, duplicates])
