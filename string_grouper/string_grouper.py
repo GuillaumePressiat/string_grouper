@@ -10,6 +10,7 @@ from scipy.sparse import vstack
 from typing import Tuple, NamedTuple, List, Optional, Union
 from sparse_dot_topn import sp_matmul_topn, zip_sp_matmul_topn
 from functools import wraps
+from unicodedata import normalize
 
 DEFAULT_NGRAM_SIZE: int = 3
 DEFAULT_TFIDF_MATRIX_DTYPE: type = np.float32   # (only types np.float32 and np.float64 are allowed by sparse_dot_topn)
@@ -39,7 +40,9 @@ DEFAULT_MASTER_NAME: str = 'master'  # used to name non-index column of the outp
 DEFAULT_MASTER_ID_NAME: str = f'{DEFAULT_MASTER_NAME}_{DEFAULT_ID_NAME}'    # used to name id-column of the output of
 # StringGrouper.get_nearest_matches
 GROUP_REP_PREFIX: str = 'group_rep_'    # used to prefix and name columns of the output of StringGrouper._deduplicate
+
 DEFAULT_N_BLOCKS: Tuple[int, int] = None
+DEFAULT_NORMALIZE_TO_ASCII: bool = True; 
 
 # High level functions
 
@@ -179,6 +182,7 @@ class StringGrouperConfig(NamedTuple):
     replace_na: bool = DEFAULT_REPLACE_NA
     group_rep: str = DEFAULT_GROUP_REP
     n_blocks: Tuple[int, int] = DEFAULT_N_BLOCKS
+    normalize_to_ascii: bool = DEFAULT_NORMALIZE_TO_ASCII
 
 def validate_is_fit(f):
     """Validates if the StringBuilder was fit before calling certain public functions"""
@@ -259,6 +263,8 @@ class StringGrouper(object):
         regex_pattern = self._config.regex
         if self._config.ignore_case and string is not None:
             string = string.lower()  # lowercase to ignore all case
+        if self._config.normalize_to_ascii:
+            string = normalize('NFKD', string).encode('ASCII', 'ignore').decode()
         string = re.sub(regex_pattern, r'', string)
         n_grams = zip(*[string[i:] for i in range(ngram_size)])
         return [''.join(n_gram) for n_gram in n_grams]
