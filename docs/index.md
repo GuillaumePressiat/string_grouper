@@ -1,5 +1,5 @@
 ---
-title: Home
+title: String Grouper
 ---
 
 
@@ -43,6 +43,15 @@ pip install git+https://github.com/GuillaumePressiat/string_grouper@no_blocks_de
 ```python
 import pandas as pd
 from string_grouper import match_strings
+
+#https://github.com/ngshya/pfsm/blob/master/data/sec_edgar_company_info.csv
+company_names = './data/sec_edgar_company_info.csv'
+# We only look at the first 50k as an example:
+companies = pd.read_csv(company_names)[0:50000]
+# Create all matches:
+matches = match_strings(companies['Company Name'])
+# Look at only the non-exact matches:
+matches[matches['left_Company Name'] != matches['right_Company Name']].head()
 ```
 
 As shown above, the library may be used together with `pandas`, and contains four high level functions (`match_strings`, `match_most_similar`, `group_similar_strings`, and `compute_pairwise_similarities`) that can be used directly, and one class (`StringGrouper`) that allows for a more interactive approach. 

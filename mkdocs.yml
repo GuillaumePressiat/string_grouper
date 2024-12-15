@@ -9,6 +9,18 @@ theme:
     - navigation.tabs
 #    - navigation.tabs.sticky
 
+nav:
+  - Home:
+    - index.md
+  - References:
+    - references.md
+  - Examples:
+    - examples.md
+  - Performance:
+    - performance.md
+  - String Grouper class:
+    - sg_class.md
+
 markdown_extensions:
   - toc:
       toc_depth: 3

@@ -1,5 +1,6 @@
 
-* #### `match_strings` 
+## `match_strings` 
+
    Returns a `DataFrame` containing similarity-scores of all matching pairs of highly similar strings from `master` (and `duplicates` if given).  Each matching pair in the output appears in its own row/record consisting of
    
    1. its "left" part: a string (with/without its index-label) from `master`, 
@@ -21,7 +22,8 @@
    The function also supports optionally inputting IDs (`master_id` and `duplicates_id`) corresponding to the strings being matched.  In which case, the output includes two additional columns whose names are the names of these optional `Series` prefixed by `'left_'` and `'right_'` accordingly, and containing the IDs corresponding to the strings in the output.  If any of these `Series` has no name, then it assumes the name `'id'` and is then prefixed as described above.
    
    
-* #### `match_most_similar` 
+## `match_most_similar` 
+
    If `ignore_index=True`, returns a `Series` of strings, where for each string in `duplicates` the most similar string in `master` is returned.  If there are no similar strings in `master` for a given string in `duplicates` (because there is no potential match where the cosine similarity is above the threshold \[default: 0.8\]) then the original string in `duplicates` is returned.  The output `Series` thus has the same length and index as `duplicates`.  
    
    For example, if an input `Series` with the values `\['foooo', 'bar', 'baz'\]` is passed as the argument `master`, and `\['foooob', 'bar', 'new'\]` as the values of the argument `duplicates`, the function will return a `Series` with values: `\['foooo', 'bar', 'new'\]`.
@@ -35,7 +37,8 @@
    If both parameters `master_id` and `duplicates_id` are also given, then a `DataFrame` is always returned with the same column(s) as described above, but with an additional column containing those IDs from these input `Series` corresponding to the output strings.  This column's name is the same as that of `master_id` prefixed in the same way as described above.  If `master_id` has no name, it is assumed to have the name `'master_id'` before being prefixed.
 
 
-* #### `group_similar_strings` 
+## `group_similar_strings` 
+
   Takes a single `Series` of strings (`strings_to_group`) and groups them by assigning to each string one string from `strings_to_group` chosen as the group-representative for each group of similar strings found. (See [tutorials/group_representatives.md](https://github.com/Bergvca/string_grouper/blob/master/tutorials/group_representatives.md) for details on how the the group-representatives are chosen.)   
   
   If `ignore_index=True`, the output is a `Series` (with the same name as `strings_to_group` prefixed by the string `'group_rep_'`) of the same length and index as `strings_to_group` containing the group-representative strings.  If `strings_to_group` has no name then the name of the returned `Series` is `'group_rep'`.  
@@ -47,16 +50,17 @@
    If `strings_id` is also given, then the IDs from `strings_id` corresponding to the group-representatives are also returned in an additional column (with the same name as `strings_id` prefixed as described above).  If `strings_id` has no name, it is assumed to have the name `'id'` before being prefixed.
    
 
-* #### `compute_pairwise_similarities`
+## `compute_pairwise_similarities`
+
    Returns a `Series` of cosine similarity scores the same length and index as `string_series_1`.  Each score is the cosine similarity between the pair of strings in the same position (row) in the two input `Series`, `string_series_1` and `string_series_2`, as the position of the score in the output `Series`.  This can be seen as an element-wise comparison between the two input `Series`.
    
 
 All functions are built using a class **`StringGrouper`**. This class can be used through pre-defined functions, for example the four high level functions above, as well as using a more interactive approach where matches can be added or removed if needed by calling the **`StringGrouper`** class directly.
    
 
-#### Options:
+## Options
 
-* #### <a name="kwargs"></a>`kwargs`
+### <a name="kwargs"></a>`kwargs`
 
    All keyword arguments not mentioned in the function definitions above are used to update the default settings. The following optional arguments can be used:
 
