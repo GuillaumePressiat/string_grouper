@@ -173,7 +173,7 @@ class StringGrouperConfig(NamedTuple):
     ngram_size: int = DEFAULT_NGRAM_SIZE
     tfidf_matrix_dtype: int = DEFAULT_TFIDF_MATRIX_DTYPE
     regex: str = DEFAULT_REGEX
-    max_n_matches: Optional[int] = None
+    max_n_matches: Optional[int] = DEFAULT_MAX_N_MATCHES #None
     min_similarity: float = DEFAULT_MIN_SIMILARITY
     number_of_processes: int = DEFAULT_N_PROCESSES
     ignore_case: bool = DEFAULT_IGNORE_CASE
