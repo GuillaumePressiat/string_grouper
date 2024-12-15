@@ -1,5 +1,7 @@
 site_name: String Grouper  
 
+repo_url: https://github.com/GuillaumePressiat/string_grouper
+
 
 theme:
   name: material
