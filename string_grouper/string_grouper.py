@@ -81,7 +81,6 @@ def group_similar_strings(strings_to_group: pd.Series,
     """
     sg = StringGrouper(strings_to_group, 
         master_id=string_ids, 
-        max_n_matches = 1, 
         **kwargs).fit()
     sg = sg.fit()
         
@@ -178,7 +177,7 @@ class StringGrouperConfig(NamedTuple):
     ngram_size: int = DEFAULT_NGRAM_SIZE
     tfidf_matrix_dtype: int = DEFAULT_TFIDF_MATRIX_DTYPE
     regex: str = DEFAULT_REGEX
-    max_n_matches: Optional[int] = None
+    max_n_matches: Optional[int] = DEFAULT_MAX_N_MATCHES #None
     min_similarity: float = DEFAULT_MIN_SIMILARITY
     number_of_processes: int = DEFAULT_N_PROCESSES
     ignore_case: bool = DEFAULT_IGNORE_CASE
@@ -611,20 +610,9 @@ class StringGrouper(object):
 
         self.reset_data(strings_to_group, master_id=string_ids)
 
-        old_max_n_matches = self._max_n_matches
-        new_max_n_matches = None
-        if 'max_n_matches' in kwargs:
-            new_max_n_matches = kwargs['max_n_matches']
-        kwargs['max_n_matches'] = 1
-
-        self.update_options(**kwargs)
-
         self = self.fit()
         output = self.get_groups()
         
-        kwargs['max_n_matches'] = old_max_n_matches if new_max_n_matches is None else new_max_n_matches
-        self.update_options(**kwargs)
-
         return output
 
     def compute_pairwise_similarities(self,
