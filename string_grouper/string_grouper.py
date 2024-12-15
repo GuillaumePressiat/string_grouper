@@ -269,14 +269,30 @@ class StringGrouper(object):
         n_grams = zip(*[string[i:] for i in range(ngram_size)])
         return [''.join(n_gram) for n_gram in n_grams]
 
-    def fit(self) -> 'StringGrouper':
-        """Builds the _matches list which contains string matches indices and similarity"""
+    def fit(self):
+        """
+        Builds the _matches list which contains string-matches' indices and similarity
+        Updates and returns the StringGrouper object that called it.
+        """
         master_matrix, duplicate_matrix = self._get_tf_idf_matrices()
 
-        # Calculate the matches using the cosine similarity
-        matches = self._build_matches(master_matrix, duplicate_matrix, self._n_blocks)
+        # do the matching
+        if self._n_blocks is None:
+            try:
+                matches = self._build_matches(master_matrix, duplicate_matrix, self._n_blocks)
+            except OverflowError:
+                warnings.warn("An OverflowError occurred but is being "
+                              "handled.  The input data will be automatically "
+                              "split-up into smaller chunks which will then be "
+                              "processed one chunk at a time.  To prevent "
+                              "OverflowError, use the n_blocks parameter to split-up "
+                              "the data manually into small enough chunks.")
+                matches = self._build_matches(master_matrix, duplicate_matrix, (1,180))
+        else:
+            matches = self._build_matches(master_matrix, duplicate_matrix, self._n_blocks)
+
         self._true_max_n_matches = np.diff(matches.indptr).max()
-        
+
         if self._duplicates is None:
             # convert to lil format for best efficiency when setting matrix-elements
             matches = matches.tolil()
@@ -288,7 +304,6 @@ class StringGrouper(object):
                 matches = StringGrouper._symmetrize_matrix(matches)
             matches = matches.tocsr()
 
-        # build list from matrix
         self._matches_list = self._get_matches_list(matches)
         self.is_build = True
         return self
