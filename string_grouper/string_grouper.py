@@ -432,6 +432,7 @@ class StringGrouper(object):
         """
         def get_both_sides(master: pd.Series,
                            duplicates: pd.Series,
+                           matches_list: pd.DataFrame,
                            generic_name=(DEFAULT_COLUMN_NAME, DEFAULT_COLUMN_NAME),
                            drop_index=False):
             lname, rname = generic_name
@@ -464,7 +465,7 @@ class StringGrouper(object):
             matches_list = self._matches_list if non_matches_list.empty else \
                 pd.concat([self._matches_list, non_matches_list], axis=0, ignore_index=True)
 
-        left_side, right_side = get_both_sides(self._master, self._duplicates, drop_index=ignore_index)
+        left_side, right_side = get_both_sides(self._master, self._duplicates, matches_list, drop_index=ignore_index)
         similarity = matches_list.similarity.reset_index(drop=True)
         if self._master_id is None:
             return pd.concat(
@@ -479,6 +480,7 @@ class StringGrouper(object):
             left_side_id, right_side_id = get_both_sides(
                 self._master_id,
                 self._duplicates_id,
+                matches_list, 
                 (DEFAULT_ID_NAME, DEFAULT_ID_NAME),
                 drop_index=True
             )
