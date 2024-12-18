@@ -689,7 +689,7 @@
 <li>Create groups of similar strings</li>
 </ol>
 <p>The <code>StringGrouper</code> class allows for this without having to re-calculate the cosine similarity matrix. See below for an example. </p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">company_names</span> <span class="o">=</span> <span class="s1">&#39;/media/chris/data/dev/name_matching/data/sec_edgar_company_info.csv&#39;</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">company_names</span> <span class="o">=</span> <span class="s1">&#39;./data/sec_edgar_company_info.csv&#39;</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">companies</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">company_names</span><span class="p">)</span>
 </span></code></pre></div>
 <ol>
@@ -702,14 +702,18 @@
 </span></code></pre></div>
 <div class="language-text highlight"><pre><span></span><code>[&#39;McD&#39;, &#39;cDo&#39;, &#39;Don&#39;, &#39;ona&#39;, &#39;nal&#39;, &#39;ald&#39;, &#39;lds&#39;]
 </code></pre></div>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Now fit the StringGrouper - this will take a while since we are calculating cosine similarities on 600k strings</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">string_grouper</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">string_grouper</span><span class="o">.</span><span class="n">n_grams</span><span class="p">(</span><span class="s1">&#39;ÀbracâDABRÀ&#39;</span><span class="p">)</span>
 </span></code></pre></div>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Add the grouped strings</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">companies</span><span class="p">[</span><span class="s1">&#39;deduplicated_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()</span>
+<div class="language-text highlight"><pre><span></span><code>[&#39;abr&#39;, &#39;bra&#39;, &#39;rac&#39;, &#39;aca&#39;, &#39;cad&#39;, &#39;ada&#39;, &#39;dab&#39;, &#39;abr&#39;, &#39;bra&#39;]
+</code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Now fit the StringGrouper - this will take a while since we are calculating cosine similarities on 600k strings</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">string_grouper</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Add the grouped strings</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">companies</span><span class="p">[</span><span class="s1">&#39;deduplicated_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()</span>
 </span></code></pre></div>
 <p>Suppose we know that PWC HOLDING CORP and PRICEWATERHOUSECOOPERS LLP are the same company. StringGrouper will not match these since they are not similar enough. </p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">companies</span><span class="p">[</span><span class="n">companies</span><span class="o">.</span><span class="n">deduplicated_name</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">)]</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">companies</span><span class="p">[</span><span class="n">companies</span><span class="o">.</span><span class="n">deduplicated_name</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">)]</span>
 </span></code></pre></div>
 <div>
 <table border="1" class="dataframe">
@@ -748,7 +752,7 @@
 </table>
 </div>
 
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">companies</span><span class="p">[</span><span class="n">companies</span><span class="o">.</span><span class="n">deduplicated_name</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;PWC&#39;</span><span class="p">)]</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">companies</span><span class="p">[</span><span class="n">companies</span><span class="o">.</span><span class="n">deduplicated_name</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;PWC&#39;</span><span class="p">)]</span>
 </span></code></pre></div>
 <div>
 <table border="1" class="dataframe">
@@ -823,11 +827,11 @@
 </div>
 
 <p>We can add these with the add function:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">string_grouper</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">add_match</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">,</span> <span class="s1">&#39;PWC HOLDING CORP&#39;</span><span class="p">)</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">companies</span><span class="p">[</span><span class="s1">&#39;deduplicated_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># Now lets check again:</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">companies</span><span class="p">[</span><span class="n">companies</span><span class="o">.</span><span class="n">deduplicated_name</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">)]</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">string_grouper</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">add_match</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">,</span> <span class="s1">&#39;PWC HOLDING CORP&#39;</span><span class="p">)</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">companies</span><span class="p">[</span><span class="s1">&#39;deduplicated_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># Now lets check again:</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">companies</span><span class="p">[</span><span class="n">companies</span><span class="o">.</span><span class="n">deduplicated_name</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">)]</span>
 </span></code></pre></div>
 <div>
 <table border="1" class="dataframe">
@@ -874,11 +878,11 @@
 </div>
 
 <p>This can also be used to merge two groups:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">string_grouper</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">add_match</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">,</span> <span class="s1">&#39;ZUCKER MICHAEL&#39;</span><span class="p">)</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">companies</span><span class="p">[</span><span class="s1">&#39;deduplicated_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Now lets check again:</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">companies</span><span class="p">[</span><span class="n">companies</span><span class="o">.</span><span class="n">deduplicated_name</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">)]</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">string_grouper</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">add_match</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">,</span> <span class="s1">&#39;ZUCKER MICHAEL&#39;</span><span class="p">)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">companies</span><span class="p">[</span><span class="s1">&#39;deduplicated_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Now lets check again:</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">companies</span><span class="p">[</span><span class="n">companies</span><span class="o">.</span><span class="n">deduplicated_name</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">)]</span>
 </span></code></pre></div>
 <div>
 <table border="1" class="dataframe">
@@ -946,11 +950,11 @@
 </div>
 
 <p>We can remove strings from groups in the same way:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">string_grouper</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">remove_match</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">,</span> <span class="s1">&#39;ZUCKER MICHAEL&#39;</span><span class="p">)</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">companies</span><span class="p">[</span><span class="s1">&#39;deduplicated_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Now lets check again:</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">companies</span><span class="p">[</span><span class="n">companies</span><span class="o">.</span><span class="n">deduplicated_name</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">)]</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">string_grouper</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">remove_match</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">,</span> <span class="s1">&#39;ZUCKER MICHAEL&#39;</span><span class="p">)</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">companies</span><span class="p">[</span><span class="s1">&#39;deduplicated_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">string_grouper</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Now lets check again:</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">companies</span><span class="p">[</span><span class="n">companies</span><span class="o">.</span><span class="n">deduplicated_name</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;PRICEWATERHOUSECOOPERS LLP&#39;</span><span class="p">)]</span>
 </span></code></pre></div>
 <div>
 <table border="1" class="dataframe">
