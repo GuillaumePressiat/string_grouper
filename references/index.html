@@ -884,8 +884,9 @@
 <li><strong><code>ngram_size</code></strong>: The amount of characters in each n-gram. Default is <code>3</code>.</li>
 <li><strong><code>regex</code></strong>: The regex string used to clean-up the input string. Default is <code>r"[,-./]|\s"</code>.</li>
 <li><strong><code>ignore_case</code></strong>: Determines whether or not letter case in strings should be ignored. Defaults to <code>True</code>.</li>
-<li><strong><code>tfidf_matrix_dtype</code></strong>: The datatype for the tf-idf values of the matrix components. Allowed values are <code>numpy.float32</code> and <code>numpy.float64</code>.  Default is <code>numpy.float32</code>.  (Note: <code>numpy.float32</code> often leads to faster processing and a smaller memory footprint albeit less numerical precision than <code>numpy.float64</code>.)</li>
-<li><strong><code>max_n_matches</code></strong>: The maximum number of matching strings in <code>master</code> allowed per string in <code>duplicates</code>. Default is the total number of strings in <code>master</code>.</li>
+<li><strong><code>normalize_to_ascii</code></strong>: Determines whether or not unicode to ascii normarlization is done. Default to <code>True</code>.</li>
+<li><strong><code>tfidf_matrix_dtype</code></strong>: The datatype for the tf-idf values of the matrix components. Allowed values are <code>numpy.float32</code> and <code>numpy.float64</code>.  Default is <code>numpy.float64</code>.  (Note: <code>numpy.float32</code> often leads to faster processing and a smaller memory footprint albeit less numerical precision than <code>numpy.float64</code>.)</li>
+<li><strong><code>max_n_matches</code></strong>: The maximum number of matching strings in <code>master</code> allowed per string in <code>duplicates</code>. Default is 20.</li>
 <li><strong><code>min_similarity</code></strong>: The minimum cosine similarity for two strings to be considered a match.
     Defaults to <code>0.8</code></li>
 <li><strong><code>number_of_processes</code></strong>: The number of processes used by the cosine similarity calculation. Defaults to
