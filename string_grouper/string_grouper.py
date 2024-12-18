@@ -3,6 +3,7 @@ import numpy as np
 import re
 import multiprocessing
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.utils.validation import check_symmetric
 from scipy.sparse.csr import csr_matrix
 from scipy.sparse.lil import lil_matrix
 from scipy.sparse.csgraph import connected_components
@@ -11,11 +12,12 @@ from typing import Tuple, NamedTuple, List, Optional, Union
 from sparse_dot_topn import sp_matmul_topn, zip_sp_matmul_topn
 from functools import wraps
 from unicodedata import normalize
+import warnings
 
 DEFAULT_NGRAM_SIZE: int = 3
-DEFAULT_TFIDF_MATRIX_DTYPE: type = np.float32   # (only types np.float32 and np.float64 are allowed by sparse_dot_topn)
+DEFAULT_TFIDF_MATRIX_DTYPE: type = np.float64   # (only types np.float32 and np.float64 are allowed by sparse_dot_topn)
 DEFAULT_REGEX: str = r'[,-./]|\s'
-DEFAULT_MAX_N_MATCHES: int = 20
+DEFAULT_MAX_N_MATCHES: int = 20 #None 
 DEFAULT_MIN_SIMILARITY: float = 0.8  # minimum cosine similarity for an item to be considered a match
 DEFAULT_N_PROCESSES: int = multiprocessing.cpu_count() - 1
 DEFAULT_IGNORE_CASE: bool = True  # ignores case by default
@@ -81,7 +83,7 @@ def group_similar_strings(strings_to_group: pd.Series,
     """
     sg = StringGrouper(strings_to_group, 
         master_id=string_ids, 
-        **kwargs).fit()
+        **kwargs)
     sg = sg.fit()
         
     return sg.get_groups()
@@ -281,10 +283,8 @@ class StringGrouper(object):
     def _set_options(self, **kwargs):
         self._config = StringGrouperConfig(**kwargs)
 
-        if self._config.max_n_matches is None:
-            self._max_n_matches = len(self._master)
-        else:
-            self._max_n_matches = self._config.max_n_matches
+
+        self._max_n_matches = self._config.max_n_matches
 
         self._validate_group_rep_specs()
         self._validate_tfidf_matrix_dtype()
@@ -398,12 +398,11 @@ class StringGrouper(object):
             # matrix diagonal elements must be exactly 1 (numerical precision errors introduced by
             # floating-point computations in awesome_cossim_topn sometimes lead to unexpected results)
             matches = StringGrouper._fix_diagonal(matches)
-            if self._max_n_matches < self._true_max_n_matches:
-                # the list of matches must be symmetric! (i.e., if A != B and A matches B; then B matches A)
-                matches = StringGrouper._symmetrize_matrix(matches)
+            # the list of matches must be symmetric! (i.e., if A != B and A matches B; then B matches A)
             matches = matches.tocsr()
+            matches = check_symmetric(matches, raise_warning = False)
 
-        self._matches_list = self._get_matches_list(matches)
+        self._matches_list = self._get_matches_list(matches, self._config.min_similarity)
         self.is_build = True
         return self
 
@@ -575,18 +574,11 @@ class StringGrouper(object):
         """
         self.reset_data(master, duplicates, master_id, duplicates_id)
 
-        old_max_n_matches = self._max_n_matches
-        new_max_n_matches = None
-        if 'max_n_matches' in kwargs:
-            new_max_n_matches = kwargs['max_n_matches']
-        kwargs['max_n_matches'] = 1
         self.update_options(**kwargs)
 
         self = self.fit()
         output = self.get_groups()
 
-        kwargs['max_n_matches'] = old_max_n_matches if new_max_n_matches is None else new_max_n_matches
-        self.update_options(**kwargs)
         return output
 
     def group_similar_strings(self,
@@ -612,6 +604,7 @@ class StringGrouper(object):
 
         self.reset_data(strings_to_group, master_id=string_ids)
 
+        self.update_options(**kwargs)
         self = self.fit()
         output = self.get_groups()
         
@@ -640,7 +633,7 @@ class StringGrouper(object):
 
         # add prior matches to new match
         prior_matches = self._matches_list.master_side[self._matches_list.dupe_side.isin(dupe_indices)]
-        dupe_indices = dupe_indices.append(prior_matches)
+        dupe_indices = dupe_indices._append(prior_matches)
         dupe_indices.drop_duplicates(inplace=True)
 
         similarities = [1]
@@ -724,7 +717,7 @@ class StringGrouper(object):
                 tf_idf_matrix_1, 
                 tf_idf_matrix_2,
                 self._max_n_matches,
-                self._config.min_similarity,
+                0.0,
                 sort = True,
                 **optional_kwargs
             )
@@ -735,7 +728,7 @@ class StringGrouper(object):
             Cs = [[sp_matmul_topn(Aj, 
                                   Bi.T, 
                                   top_n=self._max_n_matches, 
-                                  threshold=self._config.min_similarity, 
+                                  threshold=0.0,
                                   sort=True, 
                                   n_threads = self._config.number_of_processes) 
                     for Bi in Bs] for Aj in As]
@@ -745,7 +738,7 @@ class StringGrouper(object):
 
             # 2d. stacking over zipped C-matrices, done over the index of the A sub-matrices
             # The resulting matrix C equals C_ref.
-            C = vstack(Czip, dtype=np.float32)
+            C = vstack(Czip, dtype = self._config.tfidf_matrix_dtype)
             
             return C
 
@@ -952,12 +945,13 @@ class StringGrouper(object):
         return m_symmetric
 
     @staticmethod
-    def _get_matches_list(matches: csr_matrix) -> pd.DataFrame:
+    def _get_matches_list(matches: csr_matrix, min_sim) -> pd.DataFrame:
         """Returns a list of all the indices of matches"""
         r, c = matches.nonzero()
         matches_list = pd.DataFrame({'master_side': r.astype(np.int64),
                                      'dupe_side': c.astype(np.int64),
                                      'similarity': matches.data})
+        matches_list = matches_list.loc[(matches_list['similarity'] >= min_sim)]
         return matches_list
 
     @staticmethod
@@ -1008,83 +1002,3 @@ class StringGrouper(object):
 
 
 
-def match_strings_chunked(master: pd.Series,
-                          duplicates: Optional[pd.Series] = None,
-                          master_id: Optional[pd.Series] = None,
-                          duplicates_id: Optional[pd.Series] = None,
-                          max_n_matches: Optional[np.int32] = 4,
-                          min_similarity: Optional[np.float32] = 0.8,
-                          n_gram_size: Optional[np.int32] = 3,
-                          n_threads : Optional[np.int32] = None, 
-                          chunks_size = (1,200)):
-
-    if duplicates is not None:
-        strings = pd.concat([master, duplicates])
-    else:
-        strings = master
-
-    def n_grams(string: str) -> List[str]:
-        """
-        :param string: string to create ngrams from
-        :return: list of ngrams
-        """
-        ngram_size = n_gram_size
-        regex_pattern = r'[,-./]|\s'
-        ignore_case = True
-
-        if ignore_case and string is not None:
-            string = string.lower()  # lowercase to ignore all case
-        string = re.sub(regex_pattern, r'', string)
-        n_grams = zip(*[string[i:] for i in range(ngram_size)])
-        return [''.join(n_gram) for n_gram in n_grams]
-
-
-    tfidfvec = TfidfVectorizer(min_df=1, analyzer = n_grams, dtype = np.float32).fit(strings)
-
-    master_matrix = tfidfvec.transform(master)
-
-    def define_chunks(length_to_split, n_chunks):
-
-        def chunk_list(lst, n):
-            """Yield successive n-sized chunks from lst."""
-            for i in range(0, len(lst), n):
-                yield lst[i:i + n]
-
-        chunk_len = np.ceil(length_to_split / n_chunks).astype('int')
-        return list(chunk_list(range(length_to_split), chunk_len))
-
-    As = [master_matrix[i] for i in define_chunks(master_matrix.get_shape()[0], chunks_size[0])]
-
-    if duplicates is not None:
-        dups_matrix = tfidfvec.transform(duplicates)
-        Bs = [dups_matrix[i] for i in define_chunks(dups_matrix.get_shape()[0], chunks_size[1])]
-    else:
-        Bs = [master_matrix[i] for i in define_chunks(master_matrix.get_shape()[0], chunks_size[1])]
-        
-    Cs = [[sp_matmul_topn(Aj, Bi.T, top_n=max_n_matches, threshold=min_similarity, sort=True, n_threads = n_threads) for Bi in Bs] for Aj in As]
-
-    # 2c. top-n zipping of the C-matrices, done over the index of the B sub-matrices.
-    Czip = [zip_sp_matmul_topn(top_n=max_n_matches, C_mats=Cis) for Cis in Cs]
-
-    # 2d. stacking over zipped C-matrices, done over the index of the A sub-matrices
-    # The resulting matrix C equals C_ref.
-    C = vstack(Czip, dtype=np.float32)
-
-    matches = C#_ref
-    r, c = matches.nonzero()
-    matches_list = pd.DataFrame({'master_side': r.astype(np.int64),
-                                 'dupe_side': c.astype(np.int64),
-                                 'similarity': matches.data})
-
-
-    end_ = pd.DataFrame({
-        'left_side' : master.iloc[matches_list.master_side].reset_index(drop=True),
-        'left_side_id' : master_id.iloc[matches_list.master_side].reset_index(drop=True) if master_id is not None else None,
-        'right_side' : duplicates.iloc[matches_list.dupe_side].reset_index(drop=True) if duplicates is not None else master.iloc[matches_list.dupe_side].reset_index(drop=True),
-        'right_side_id' : duplicates_id.iloc[matches_list.dupe_side].reset_index(drop=True) if duplicates_id is not None else 
-                        master_id.iloc[matches_list.dupe_side].reset_index(drop=True) if master_id is not None else None,
-        'similarity': matches_list['similarity']
-        }
-    )
-
-    return end_
