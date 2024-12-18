@@ -9,6 +9,10 @@
       
       
       
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="../match_most_similar/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -56,6 +60,11 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
+      
+        
+        <a href="#arguments" class="md-skip">
+          Skip to content
+        </a>
       
     </div>
     <div data-md-component="announce">
@@ -184,11 +193,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   References
@@ -228,24 +239,6 @@
           
   
   Performance
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../sg_class/" class="md-tabs__link">
-          
-  
-  String Grouper class
 
         </a>
       </li>
@@ -368,23 +361,28 @@
       
   
   
+    
   
   
+  
     
     
     
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -395,7 +393,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             References
@@ -406,14 +404,173 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    match_strings
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
-    References
+    match_strings
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Arguments
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#result" class="md-nav__link">
+    <span class="md-ellipsis">
+      Result
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../match_most_similar/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    match_most_similar
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../group_similar_strings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    group_similar_strings
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compute_pairwise_similarities/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    compute_pairwise_similarities
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../options_kwargs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Options / **kwargs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sg_class/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    String Grouper Class
   </span>
   
 
@@ -562,72 +719,6 @@
   
 
     
-      
-      
-  
-  
-  
-  
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  <span class="md-ellipsis">
-    String Grouper class
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            String Grouper class
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../sg_class/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    String Grouper Class
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -645,6 +736,32 @@
   
   
   
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Arguments
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#result" class="md-nav__link">
+    <span class="md-ellipsis">
+      Result
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -664,42 +781,26 @@
 
   <h1>match_strings</h1>
 
+<h2 id="arguments">Arguments</h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">match_strings</span><span class="p">(</span><span class="n">master</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>              <span class="n">duplicates</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>              <span class="n">master_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>              <span class="n">duplicates_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">],</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>              <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+</span></code></pre></div>
+<h2 id="result">Result</h2>
 <p>Returns a <code>DataFrame</code> containing similarity-scores of all matching pairs of highly similar strings from <code>master</code> (and <code>duplicates</code> if given).  Each matching pair in the output appears in its own row/record consisting of</p>
-<ul>
-<li>
 <ol>
 <li>its "left" part: a string (with/without its index-label) from <code>master</code>, </li>
-</ol>
-</li>
-<li>
-<ol>
 <li>its similarity score, and  </li>
-</ol>
-</li>
-<li>
-<ol>
 <li>its "right" part: a string (with/without its index-label) from <code>duplicates</code> (or <code>master</code> if <code>duplicates</code> is not given), </li>
 </ol>
-</li>
-</ul>
 <p>in that order.  Thus the column-names of the output are a collection of three groups:</p>
-<ul>
-<li>
 <ol>
 <li>The name of <code>master</code> and the name(s) of its index (or index-levels) all prefixed by the - string <code>'left_'</code>,</li>
-</ol>
-</li>
-<li>
-<ol>
 <li><code>'similarity'</code> whose column has the similarity-scores as values, and </li>
-</ol>
-</li>
-<li>
-<ol>
 <li>The name of <code>duplicates</code> (or <code>master</code> if <code>duplicates</code> is not given) and the name(s) of its index (or index-levels) prefixed by the string <code>'right_'</code>.</li>
 </ol>
-</li>
-</ul>
 <p>Indexes (or their levels) only appear when the keyword argument <code>ignore_index=False</code> (the default). (See <a href="https://github.com/Bergvca/string_grouper/blob/master/tutorials/ignore_index_and_replace_na.md">tutorials/ignore_index_and_replace_na.md</a> for a demonstration.)</p>
 <p>If either <code>master</code> or <code>duplicates</code> has no name, it assumes the name <code>'side'</code> which is then prefixed as described above.  Similarly, if any of the indexes (or index-levels) has no name it assumes its <code>pandas</code> default name (<code>'index'</code>, <code>'level_0'</code>, and so on) and is then prefixed as described above.</p>
 <p>In other words, if only parameter <code>master</code> is given, the function will return pairs of highly similar strings within <code>master</code>.  This can be seen as a self-join where both <code>'left_'</code> and <code>'right_'</code> prefixed columns come from <code>master</code>. If both parameters <code>master</code> and <code>duplicates</code> are given, it will return pairs of highly similar strings between <code>master</code> and <code>duplicates</code>. This can be seen as an inner-join where <code>'left_'</code> and <code>'right_'</code> prefixed columns come from <code>master</code> and <code>duplicates</code> respectively.     </p>
