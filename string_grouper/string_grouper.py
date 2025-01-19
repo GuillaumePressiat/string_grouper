@@ -388,8 +388,10 @@ class StringGrouper(object):
         b_left = max(1, round(len(self._left_Series)/2e6))     # arbitrary, big enough not to split both left and right often
         b_right = max(1, round(len(self._right_Series)/4e3)) # based on tests and observations
         size_guess_block = (b_left, b_right)
-
+      
         if self._n_blocks is None:
+            print("left and right block sizes guessed are: ")
+            print(size_guess_block)
             self._n_blocks = size_guess_block
 
         # do the matching
