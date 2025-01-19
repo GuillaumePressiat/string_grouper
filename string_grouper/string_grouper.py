@@ -385,6 +385,9 @@ class StringGrouper(object):
         """
         master_matrix, duplicate_matrix = self._get_tf_idf_matrices()
 
+        logger.info("left / master rows: " + str(self._left_Series))
+        logger.info("right /duplicate rows: " + str(self._right_Series))
+
         b_left = max(1, round(len(self._left_Series)/1e6))     # arbitrary, big enough not to split both left and right often
         b_right = max(1, round(len(self._right_Series)/4e3)) # based on tests and observations
         size_guess_block = (b_left, b_right) # inversion of left and right series was introduced in 0.6 ?
