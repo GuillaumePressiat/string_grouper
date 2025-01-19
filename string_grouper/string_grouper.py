@@ -720,7 +720,7 @@ class StringGrouper(object):
                 duplicate_matrix.transpose(),
                 top_n = self._max_n_matches,
                 threshold = self._config.min_similarity,
-                sort = True,
+                sort = False,
                 n_threads = self._config.number_of_processes
             )
         else:
@@ -731,7 +731,7 @@ class StringGrouper(object):
                                   Bi.T, 
                                   top_n = self._max_n_matches, 
                                   threshold = self._config.min_similarity, 
-                                  sort = True, 
+                                  sort = False, 
                                   n_threads = self._config.number_of_processes) 
                     for Bi in Bs] for Aj in As]
 
